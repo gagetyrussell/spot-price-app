@@ -18,7 +18,8 @@ application = app.server
 app.layout = html.Div([
     dcc.Dropdown(
         id='spot-price-category-dropdown',
-        options=dropdown_options
+        options=dropdown_options,
+        value=dropdown_options[0]['value']
     ),
     dcc.Graph(id='dd-output-container')
 ])
@@ -29,16 +30,14 @@ app.layout = html.Div([
     [dash.dependencies.Input('spot-price-category-dropdown', 'value')])
 def update_output(value):
     endpoint = f'http://api.eia.gov/series/?api_key=27d5df4fc1b5d3fd846986305ff2bd1e&series_id={value}'
-    print(endpoint)
     response = requests.get(endpoint)
     rsp = response.json()
-    print(rsp.keys())
     df = pd.DataFrame(rsp['series'][0]['data'], columns=['date', 'value'])
     figure=dict(
             data=[
                 dict(
+                y=df['value'],
                     x=df['date'],
-                    y=df['value'],
                     name='Spot Price',
                     marker=dict(
                         color='rgb(55, 83, 109)'
@@ -52,4 +51,4 @@ def update_output(value):
 
 if __name__ == '__main__':
     # Beanstalk expects it to be running on 8080.
-    application.run(debug=False, port=8080)
+    application.run(debug=True, port=8080)
